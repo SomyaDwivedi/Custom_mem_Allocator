@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="Custom_mem_Allocator/Custom_mem_Allocator.vcxproj" />
+</Solution>
