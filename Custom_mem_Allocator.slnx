@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="Custom_mem_Allocator/Custom_mem_Allocator.vcxproj" />
+  <Project Path="Custom_mem_Allocator/Custom_mem_Allocator.vcxproj" Id="86e50b58-d0f3-439d-acbe-d5016f86b913" />
 </Solution>

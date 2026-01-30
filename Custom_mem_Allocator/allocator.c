@@ -6,31 +6,79 @@
 static uint8_t memory_pool[HEAP_SIZE];
 static size_t offset = 0;
 
-void* my_malloc(size_t size) {
-    
-    size_t aligned_offset = (offset + 7) & ~7;
+typedef struct Block {
+    size_t size;
+    int is_free;
+    struct Block* next;
+} Block;
 
-    if (aligned_offset + size > HEAP_SIZE) {
-        printf("Error: Out of memory!\n");
+void* my_malloc(size_t size) {
+    size_t total_size = sizeof(Block) + size;
+    total_size = (total_size + 7) & ~7; 
+
+    Block* current = (Block*)memory_pool;
+    Block* prev = NULL;
+
+    // 1. Search for a free block
+    while (current != NULL) {
+        // We need to check if we are within the initialized heap bounds
+        // (In a real OS, we'd check memory boundaries more strictly)
+        if ((uint8_t*)current >= &memory_pool[offset]) {
+            break; // We reached the uninitialized part of the heap
+        }
+
+        if (current->is_free && current->size >= size) {
+            current->is_free = 0;
+            printf("Reusing block of size %zu\n", current->size);
+            return (void*)(current + 1);
+        }
+        prev = current;
+        current = current->next;
+    }
+
+    // 2. No free block found. Create a new one.
+    if (offset + total_size > HEAP_SIZE) {
+        printf("Out of memory!\n");
         return NULL;
     }
-    void* ptr = &memory_pool[aligned_offset];
-    offset = aligned_offset + size;
 
-    printf("Allocated %zu bytes. Offset moved from %zu to %zu\n", size, aligned_offset, offset);
-    return ptr;
+    Block* header = (Block*)&memory_pool[offset];
+    header->size = size;
+    header->is_free = 0;
+    header->next = NULL;
+
+    // 3. Link the previous block to this new one!
+    if (prev != NULL) {
+        prev->next = header;
+    }
+
+    offset += total_size;
+    printf("Allocated new block of size %zu\n", size);
+    return (void*)(header + 1);
 }
 
-void my_free_all() {
-    offset = 0;
-    
+void my_free(void* ptr) {
+    if (ptr == NULL) return;
+    Block* header = (Block*)ptr - 1;
+    header->is_free = 1;
+    printf("Freed block of size %zu\n", header->size);
 }
 
 int main() {
-    
-    char* c = (char*)my_malloc(sizeof(char));
-    int* i = (int*)my_malloc(sizeof(int));
-    my_free_all();
+    // 1. Allocate int
+    int* a = (int*)my_malloc(sizeof(int));
+    *a = 10;
+
+    // 2. Allocate char
+    char* b = (char*)my_malloc(sizeof(char));
+    *b = 'Z';
+
+    // 3. Free the int (creates a hole)
+    my_free(a);
+
+    // 4. Allocate another int (should REUSE the hole from 'a')
+    int* c = (int*)my_malloc(sizeof(int));
+    *c = 20;
 
     return 0;
 }
