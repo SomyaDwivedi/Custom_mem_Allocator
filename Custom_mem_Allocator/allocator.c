@@ -19,7 +19,7 @@ void* my_malloc(size_t size) {
     Block* current = (Block*)memory_pool;
     Block* prev = NULL;
 
-    // 1. Search for a free block
+    //Search for a free block
     while (current != NULL) {
         // We need to check if we are within the initialized heap bounds
         // (In a real OS, we'd check memory boundaries more strictly)
@@ -36,7 +36,7 @@ void* my_malloc(size_t size) {
         current = current->next;
     }
 
-    // 2. No free block found. Create a new one.
+    //No free block found. Create a new one.
     if (offset + total_size > HEAP_SIZE) {
         printf("Out of memory!\n");
         return NULL;
@@ -47,7 +47,7 @@ void* my_malloc(size_t size) {
     header->is_free = 0;
     header->next = NULL;
 
-    // 3. Link the previous block to this new one!
+    //Link the previous block to this new one!
     if (prev != NULL) {
         prev->next = header;
     }
@@ -65,20 +65,20 @@ void my_free(void* ptr) {
 }
 
 int main() {
-    // 1. Allocate int
+    //Allocate int
     int* a = (int*)my_malloc(sizeof(int));
     *a = 10;
 
-    // 2. Allocate char
+    //Allocate char
     char* b = (char*)my_malloc(sizeof(char));
     *b = 'Z';
 
-    // 3. Free the int (creates a hole)
+    //Free the int (creates a hole)
     my_free(a);
 
-    // 4. Allocate another int (should REUSE the hole from 'a')
+    //Allocate another int (should REUSE the hole from 'a')
     int* c = (int*)my_malloc(sizeof(int));
     *c = 20;
 
     return 0;
-}
+}   
